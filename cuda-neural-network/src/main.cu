@@ -16,17 +16,23 @@ float computeAccuracy(const Matrix& predictions, const Matrix& targets);
 
 void saveModel(NeuralNetwork nn, const char* filePath) {
     std::ofstream file(filePath, std::ios::binary);
-	std::vector<NNLayer*> layers = nn.getLayers();
-    for (auto& layer : layers) {
-        Matrix weights = layer.getWeightsMatrix();
-		int size = weights.shape.x * weights.shape.y;
-		file.write(reinterpret_cast<char*>(&size), sizeof(size));
-		file.write(reinterpret_cast<char*>(weights.elements), size * sizeof(float));
+    std::vector<NNLayer*> layers = nn.getLayers();
+    for (NNLayer* layer : layers) {
+        LinearLayer* linearLayer = dynamic_cast<LinearLayer*>(layer);
+        if (linearLayer) {
+            Matrix weights = linearLayer->getWeightsMatrix();
+            Matrix biases = linearLayer->getBiasVector();
 
-		Matrix biases = layer.getBiasVector();
-		size = biases.shape.x * biases.shape.y;
-		file.write(reinterpret_cast<char*>(&size), sizeof(size));
-		file.write(reinterpret_cast<char*>(biases.elements), size * sizeof(float));
+            // Save weights
+            int weightsSize = weights.shape.x * weights.shape.y;
+            file.write(reinterpret_cast<char*>(&weightsSize), sizeof(weightsSize));
+			file.write((char*)(weights.data_host.get()), weightsSize * sizeof(float));
+
+            // Save biases
+            int biasesSize = biases.shape.x * biases.shape.y;
+            file.write(reinterpret_cast<char*>(&biasesSize), sizeof(biasesSize));
+            file.write((char*)(biases.data_host.get()), biasesSize * sizeof(float));
+        }
     }
 
     file.close();
@@ -61,6 +67,8 @@ int main() {
 						<< std::endl;
 		}
 	}
+
+	saveModel(nn, "model.bin");
 
 	// compute accuracy
 	Y = nn.forward(dataset.getBatches().at(dataset.getNumOfBatches() - 1));
