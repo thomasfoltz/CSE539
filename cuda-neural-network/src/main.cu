@@ -1,3 +1,5 @@
+#include <fstream>
+#include <vector>
 #include <iostream>
 #include <time.h>
 
@@ -12,8 +14,25 @@
 
 float computeAccuracy(const Matrix& predictions, const Matrix& targets);
 
-int main() {
+void saveModel(NeuralNetwork nn, const char* filePath) {
+    std::ofstream file(filePath, std::ios::binary);
+	std::vector<NNLayer*> layers = nn.getLayers();
+    for (auto& layer : layers) {
+        Matrix weights = layer.getWeightsMatrix();
+		int size = weights.shape.x * weights.shape.y;
+		file.write(reinterpret_cast<char*>(&size), sizeof(size));
+		file.write(reinterpret_cast<char*>(weights.elements), size * sizeof(float));
 
+		Matrix biases = layer.getBiasVector();
+		size = biases.shape.x * biases.shape.y;
+		file.write(reinterpret_cast<char*>(&size), sizeof(size));
+		file.write(reinterpret_cast<char*>(biases.elements), size * sizeof(float));
+    }
+
+    file.close();
+}
+
+int main() {
 	srand( time(NULL) );
 
 	CoordinatesDataset dataset(100, 21);
