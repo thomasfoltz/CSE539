@@ -203,3 +203,11 @@ Matrix LinearLayer::getWeightsMatrix() const {
 Matrix LinearLayer::getBiasVector() const {
 	return b;
 }
+
+void LinearLayer::setWeightsMatrix(const Matrix& newWeights) {
+    W = newWeights;
+}
+
+void LinearLayer::setBiasVector(const Matrix& newBiases) {
+    b = newBiases;
+}

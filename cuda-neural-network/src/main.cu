@@ -9,6 +9,7 @@
 #include "layers/sigmoid_activation.hh"
 #include "nn_utils/nn_exception.hh"
 #include "nn_utils/bce_cost.hh"
+#include "nn_utils/matrix.hh"
 
 #include "coordinates_dataset.hh"
 
@@ -36,6 +37,34 @@ void saveModel(NeuralNetwork nn, const char* filePath) {
     }
 
     file.close();
+}
+
+void loadModel(NeuralNetwork& nn, const char* filePath) {
+    std::ifstream file(filePath, std::ios::binary);
+    std::vector<NNLayer*> layers = nn.getLayers();
+    for (NNLayer* layer : layers) {
+        LinearLayer* linearLayer = dynamic_cast<LinearLayer*>(layer);
+        if (linearLayer) {
+			int weightsRows = linearLayer->getXDim();
+			int weightsCols = linearLayer->getXDim();
+
+            Matrix weights = Matrix(weightsRows, weightsCols);
+			weights.allocateCudaMemory();
+			std::unique_ptr<float[]> weightsData(new float[weightsRows * weightsCols]);
+			file.read(reinterpret_cast<char*>(weightsData.get()), weightsRows * weightsCols * sizeof(float));
+			weights.copyHostToDevice();
+
+            int biasSize = linearLayer->getXDim();
+			Matrix bias = Matrix(biasSize);
+            bias.allocateCudaMemory();
+			std::unique_ptr<float[]> biasData(new float[biasSize]);
+			file.read(reinterpret_cast<char*>(biasData.get()), biasSize * sizeof(float));
+			bias.copyHostToDevice();
+
+            linearLayer->setWeightsMatrix(weights);
+            linearLayer->setBiasVector(bias);
+        }
+    }
 }
 
 int main() {

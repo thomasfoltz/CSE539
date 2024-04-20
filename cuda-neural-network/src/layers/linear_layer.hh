@@ -42,6 +42,9 @@ public:
 	Matrix getWeightsMatrix() const;
 	Matrix getBiasVector() const;
 
+	void setWeightsMatrix(const Matrix& newWeights);
+    void setBiasVector(const Matrix& newBiases);
+
 	// for unit testing purposes only
 	friend class LinearLayerTest_ShouldReturnOutputAfterForwardProp_Test;
 	friend class NeuralNetworkTest_ShouldPerformForwardProp_Test;
