@@ -82,6 +82,38 @@ __global__ void linearLayerUpdateBias(  float* dZ, float* b,
 	}
 }
 
+void LinearLayer::initializeWeightsFrom(float* weights) {
+	std::default_random_engine generator;
+	std::normal_distribution<float> normal_distribution(0.0, 1.0);
+
+	for (int x = 0; x < W.shape.x; x++) {
+		for (int y = 0; y < W.shape.y; y++) {
+			W[y * W.shape.x + x] = weights[y * W.shape.x + x];
+		}
+	}
+
+	W.copyHostToDevice();
+}
+
+void LinearLayer::initializeBiasFrom(float* bias) {
+	for (int x = 0; x < b.shape.x; x++) {
+		b[x] = bias[x];
+	}
+
+	b.copyHostToDevice();
+}
+
+
+LinearLayer::LinearLayer(std::string name, Shape W_shape, float* weights, float* bias) :
+	W(W_shape), b(W_shape.y, 1)
+{
+	this->name = name;
+	b.allocateMemory();
+	W.allocateMemory();
+	initializeBiasFrom(bias);
+	initializeWeightsFrom(weights);
+}
+
 LinearLayer::LinearLayer(std::string name, Shape W_shape) :
 	W(W_shape), b(W_shape.y, 1)
 {
@@ -92,8 +124,11 @@ LinearLayer::LinearLayer(std::string name, Shape W_shape) :
 	initializeWeightsRandomly();
 }
 
+
 LinearLayer::~LinearLayer()
 { }
+
+
 
 void LinearLayer::initializeWeightsRandomly() {
 	std::default_random_engine generator;

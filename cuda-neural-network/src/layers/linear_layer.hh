@@ -23,6 +23,9 @@ private:
 
 	void initializeBiasWithZeros();
 	void initializeWeightsRandomly();
+	void initializeWeightsFrom(float* weights);
+	void initializeBiasFrom(float* weights);
+
 
 	void computeAndStoreBackpropError(Matrix& dZ);
 	void computeAndStoreLayerOutput(Matrix& A);
@@ -30,8 +33,10 @@ private:
 	void updateBias(Matrix& dZ, float learning_rate);
 
 public:
-	LinearLayer(std::string name, Shape W_shape);
+	LinearLayer(std::string name, Shape W_shape, float* weights, float* bias);
 	~LinearLayer();
+	LinearLayer(std::string name, Shape W_shape);
+
 
 	Matrix& forward(Matrix& A);
 	Matrix& backprop(Matrix& dZ, float learning_rate = 0.01);
