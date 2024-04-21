@@ -62,31 +62,46 @@ int main() {
 	CoordinatesDataset dataset(100, 21);
 	BCECost bce_cost;
 
-	NeuralNetwork nn;
-	nn.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
-	nn.addLayer(new ReLUActivation("relu_1"));
-	nn.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
-	nn.addLayer(new SigmoidActivation("sigmoid_output"));
+	NeuralNetwork nn1;
+	nn1.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
+	nn1.addLayer(new ReLUActivation("relu_1"));
+	nn1.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
+	nn1.addLayer(new SigmoidActivation("sigmoid_output"));
+
+    NeuralNetwork nn2;
+    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
+    nn2.addLayer(new ReLUActivation("relu_1"));
+    nn2.addLayer(new LinearLayer("linear_2", Shape(30, 30)));
+    nn2.addLayer(new ReLUActivation("relu_2"));
+    nn2.addLayer(new LinearLayer("linear_3", Shape(30, 1)));
+    nn2.addLayer(new ReLUActivation("relu_3"));
+    nn2.addLayer(new SigmoidActivation("sigmoid_output"));
 
 	// network training
-	Matrix Y;
+	Matrix Y1, Y2;
 	for (int epoch = 0; epoch < 1001; epoch++) {
-		float cost = 0.0;
+		float cost1 = 0.0;
+        float cost2 = 0.0;
 
 		for (int batch = 0; batch < dataset.getNumOfBatches() - 1; batch++) {
-			Y = nn.forward(dataset.getBatches().at(batch));
-			nn.backprop(Y, dataset.getTargets().at(batch));
-			cost += bce_cost.cost(Y, dataset.getTargets().at(batch));
+			Y1 = nn1.forward(dataset.getBatches().at(batch));
+            Y2 = nn2.forward(dataset.getBatches().at(batch));
+			nn1.backprop(Y1, dataset.getTargets().at(batch));
+            nn2.backprop(Y2, dataset.getTargets().at(batch));
+            cost1 += bce_cost.cost(Y1, dataset.getTargets().at(batch));
+            cost2 += bce_cost.cost(Y2, dataset.getTargets().at(batch));
 		}
 
 		if (epoch % 100 == 0) {
 			std::cout 	<< "Epoch: " << epoch
-						<< ", Cost: " << cost / dataset.getNumOfBatches()
+						<< ", Cost: " << cost1 / dataset.getNumOfBatches()
+                        << ", Cost: " << cost2 / dataset.getNumOfBatches()
 						<< std::endl;
 		}
 	}
 
-	saveModel(nn, "model.txt");
+	saveModel(nn1, "nn1.txt");
+    saveModel(nn2, "nn2.txt");
 	
 	return 0;
 }
