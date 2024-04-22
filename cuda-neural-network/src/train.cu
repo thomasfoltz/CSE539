@@ -30,18 +30,14 @@ void saveModel(NeuralNetwork nn, const char* filePath) {
 
             // Save weights
             file << weights.shape.x << "\n" << weights.shape.y << "\n";
-            for (int i = 0; i < weights.shape.x; i++) {
-                for (int j = 0; j < weights.shape.y; j++) {
-                    file << weights.data_host.get()[i * weights.shape.y + j] << "\n";
-                }
+            for (int i = 0; i < weights.shape.x*weights.shape.y; i++) {
+                    file << weights.data_host.get()[i] << "\n";
             }
 
             // Save biases
             file << biases.shape.x << "\n" << biases.shape.y << "\n";
-            for (int i = 0; i < biases.shape.x; i++) {
-                for (int j = 0; j < biases.shape.y; j++) {
-                    file << biases.data_host.get()[i * biases.shape.y + j] << "\n";
-                }
+			for (int i = 0; i < biases.shape.x*biases.shape.y; i++) {
+                file << biases.data_host.get()[i] << "\n";
             }
         }
         else if(layer->getName().find("sigmoid") != std::string::npos){
@@ -57,23 +53,24 @@ void saveModel(NeuralNetwork nn, const char* filePath) {
 }
 
 int main() {
-	srand( time(NULL) );
+	srand(1000);
 
-	CoordinatesDataset dataset(100, 21);
-	BCECost bce_cost;
+    CoordinatesDataset dataset(100, 21);
 
-	NeuralNetwork nn1;
-	nn1.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
-	nn1.addLayer(new ReLUActivation("relu_1"));
-	nn1.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
-	nn1.addLayer(new SigmoidActivation("sigmoid_output"));
+    BCECost bce_cost;
+
+	// NeuralNetwork nn1;
+	// nn1.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
+	// nn1.addLayer(new ReLUActivation("relu_1"));
+	// nn1.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
+	// nn1.addLayer(new SigmoidActivation("sigmoid_output"));
 
     NeuralNetwork nn2;
-    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
+    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 60)));
     nn2.addLayer(new ReLUActivation("relu_1"));
-    nn2.addLayer(new LinearLayer("linear_2", Shape(30, 30)));
-    nn2.addLayer(new ReLUActivation("relu_2"));
-    nn2.addLayer(new LinearLayer("linear_3", Shape(30, 1)));
+    // nn2.addLayer(new LinearLayer("linear_2", Shape(30, 60)));
+    // nn2.addLayer(new ReLUActivation("relu_2"));
+    nn2.addLayer(new LinearLayer("linear_3", Shape(60, 1)));
     nn2.addLayer(new ReLUActivation("relu_3"));
     nn2.addLayer(new SigmoidActivation("sigmoid_output"));
 
@@ -84,11 +81,11 @@ int main() {
         float cost2 = 0.0;
 
 		for (int batch = 0; batch < dataset.getNumOfBatches() - 1; batch++) {
-			Y1 = nn1.forward(dataset.getBatches().at(batch));
+			// Y1 = nn1.forward(dataset.getBatches().at(batch));
             Y2 = nn2.forward(dataset.getBatches().at(batch));
-			nn1.backprop(Y1, dataset.getTargets().at(batch));
+			// nn1.backprop(Y1, dataset.getTargets().at(batch));
             nn2.backprop(Y2, dataset.getTargets().at(batch));
-            cost1 += bce_cost.cost(Y1, dataset.getTargets().at(batch));
+            // cost1 += bce_cost.cost(Y1, dataset.getTargets().at(batch));
             cost2 += bce_cost.cost(Y2, dataset.getTargets().at(batch));
 		}
 
@@ -100,7 +97,7 @@ int main() {
 		}
 	}
 
-	saveModel(nn1, "nn1.txt");
+	// saveModel(nn1, "nn1.txt");
     saveModel(nn2, "nn2.txt");
 	
 	return 0;

@@ -83,13 +83,8 @@ __global__ void linearLayerUpdateBias(  float* dZ, float* b,
 }
 
 void LinearLayer::initializeWeightsFrom(float* weights) {
-	std::default_random_engine generator;
-	std::normal_distribution<float> normal_distribution(0.0, 1.0);
-
-	for (int x = 0; x < W.shape.x; x++) {
-		for (int y = 0; y < W.shape.y; y++) {
-			W[y * W.shape.x + x] = weights[y * W.shape.x + x];
-		}
+	for (int i = 0; i < W.shape.x*W.shape.y; i++) {
+			W[i] = weights[i];
 	}
 
 	W.copyHostToDevice();
