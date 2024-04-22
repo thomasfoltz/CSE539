@@ -71,25 +71,27 @@ int main() {
     loadModel(nn2, "nn2.txt");
 
     srand(1000);
-    CoordinatesDataset dataset(100, 21);
+    CoordinatesDataset dataset(1000, 21);
 	Matrix Y1, Y2;
+
+    cudaStream_t stream1, stream2; 
+    cudaStreamCreate (&stream1);
+    cudaStreamCreate (&stream2);
 
 	// compute accuracy
     for (int i = 0; i < 10; i++) {
-        Y1 = nn1.forward(dataset.getBatches().at(dataset.getNumOfBatches() - 1));
-        // printf("\ny1");
-        Y2 = nn2.forward(dataset.getBatches().at(dataset.getNumOfBatches() - 1));
-        // printf("\ny2");
+        Y1 = nn1.forward(dataset.getBatches().at(i), stream1);
+        Y2 = nn2.forward(dataset.getBatches().at(i), stream2);
+        Y1.copyDeviceToHost();
+        Y2.copyDeviceToHost();
+
+        float accuracy1 = computeAccuracy(Y1, dataset.getTargets().at(i));
+        float accuracy2 = computeAccuracy(Y2, dataset.getTargets().at(i));
+
+        std::cout 	<< "Accuracy 1: " << accuracy1 << std::endl;
+        std::cout 	<< "Accuracy 2: " << accuracy2 << std::endl;
     }
 
-    Y1.copyDeviceToHost();
-    Y2.copyDeviceToHost();
-
-	float accuracy1 = computeAccuracy(Y1, dataset.getTargets().at(dataset.getNumOfBatches() - 1));
-	float accuracy2 = computeAccuracy(Y2, dataset.getTargets().at(dataset.getNumOfBatches() - 1));
-
-	std::cout 	<< "Accuracy 1: " << accuracy1 << std::endl;
-    std::cout 	<< "Accuracy 2: " << accuracy2 << std::endl;
 
 	return 0;
 }

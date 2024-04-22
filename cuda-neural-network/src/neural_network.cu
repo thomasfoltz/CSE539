@@ -15,11 +15,11 @@ void NeuralNetwork::addLayer(NNLayer* layer) {
 	this->layers.push_back(layer);
 }
 
-Matrix NeuralNetwork::forward(Matrix X) {
+Matrix NeuralNetwork::forward(Matrix X, cudaStream_t stream) {
 	Matrix Z = X;
 
 	for (auto layer : layers) {
-		Z = layer->forward(Z);
+		Z = layer->forward(Z, stream);
 	}
 
 	Y = Z;

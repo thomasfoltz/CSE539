@@ -17,7 +17,7 @@ public:
 	NeuralNetwork(float learning_rate = 0.01);
 	~NeuralNetwork();
 
-	Matrix forward(Matrix X);
+	Matrix forward(Matrix X, cudaStream_t stream=0);
 	void backprop(Matrix predictions, Matrix target);
 
 	void addLayer(NNLayer *layer);

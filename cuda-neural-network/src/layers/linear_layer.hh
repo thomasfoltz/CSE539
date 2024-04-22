@@ -28,7 +28,7 @@ private:
 
 
 	void computeAndStoreBackpropError(Matrix& dZ);
-	void computeAndStoreLayerOutput(Matrix& A);
+	void computeAndStoreLayerOutput(Matrix& A, cudaStream_t stream);
 	void updateWeights(Matrix& dZ, float learning_rate);
 	void updateBias(Matrix& dZ, float learning_rate);
 
@@ -38,7 +38,7 @@ public:
 	LinearLayer(std::string name, Shape W_shape);
 
 
-	Matrix& forward(Matrix& A);
+	Matrix& forward(Matrix& A, cudaStream_t stream=0);
 	Matrix& backprop(Matrix& dZ, float learning_rate = 0.01);
 
 	int getXDim() const;

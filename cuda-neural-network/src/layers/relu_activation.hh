@@ -13,6 +13,6 @@ public:
 	ReLUActivation(std::string name);
 	~ReLUActivation();
 
-	Matrix& forward(Matrix& Z);
+	Matrix& forward(Matrix& Z, cudaStream_t stream=0);
 	Matrix& backprop(Matrix& dA, float learning_rate = 0.01);
 };

@@ -32,14 +32,14 @@ ReLUActivation::ReLUActivation(std::string name) {
 
 ReLUActivation::~ReLUActivation() { }
 
-Matrix& ReLUActivation::forward(Matrix& Z) {
+Matrix& ReLUActivation::forward(Matrix& Z, cudaStream_t stream) {
 	this->Z = Z;
 	A.allocateMemoryIfNotAllocated(Z.shape);
 
 	dim3 block_size(256);
 	dim3 num_of_blocks((Z.shape.y * Z.shape.x + block_size.x - 1) / block_size.x);
 
-	reluActivationForward<<<num_of_blocks, block_size>>>(Z.data_device.get(), A.data_device.get(),
+	reluActivationForward<<<num_of_blocks, block_size, 0, stream>>>(Z.data_device.get(), A.data_device.get(),
 														 Z.shape.x, Z.shape.y);
 	NNException::throwIfDeviceErrorsOccurred("Cannot perform ReLU forward propagation.");
 

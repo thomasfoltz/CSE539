@@ -12,7 +12,7 @@
 
 #include "coordinates_dataset.hh"
 
-void saveModel(NeuralNetwork nn, const char* filePath) {
+void saveModel(NeuralNetwork& nn, const char* filePath) {
     std::ofstream file(filePath);
     std::vector<NNLayer*> layers = nn.getLayers();
     for (NNLayer* layer : layers) {
@@ -59,33 +59,31 @@ int main() {
 
     BCECost bce_cost;
 
-	// NeuralNetwork nn1;
-	// nn1.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
-	// nn1.addLayer(new ReLUActivation("relu_1"));
-	// nn1.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
-	// nn1.addLayer(new SigmoidActivation("sigmoid_output"));
+	NeuralNetwork nn1;
+	nn1.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
+	nn1.addLayer(new ReLUActivation("relu_1"));
+	nn1.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
+	nn1.addLayer(new SigmoidActivation("sigmoid_output"));
 
     NeuralNetwork nn2;
-    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 60)));
+    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 15)));
     nn2.addLayer(new ReLUActivation("relu_1"));
-    // nn2.addLayer(new LinearLayer("linear_2", Shape(30, 60)));
-    // nn2.addLayer(new ReLUActivation("relu_2"));
-    nn2.addLayer(new LinearLayer("linear_3", Shape(60, 1)));
-    nn2.addLayer(new ReLUActivation("relu_3"));
+    nn2.addLayer(new LinearLayer("linear_2", Shape(15, 1)));
+    nn2.addLayer(new ReLUActivation("relu_2"));
     nn2.addLayer(new SigmoidActivation("sigmoid_output"));
 
 	// network training
 	Matrix Y1, Y2;
-	for (int epoch = 0; epoch < 1001; epoch++) {
+	for (int epoch = 0; epoch < 2001; epoch++) {
 		float cost1 = 0.0;
         float cost2 = 0.0;
 
 		for (int batch = 0; batch < dataset.getNumOfBatches() - 1; batch++) {
-			// Y1 = nn1.forward(dataset.getBatches().at(batch));
+			Y1 = nn1.forward(dataset.getBatches().at(batch));
             Y2 = nn2.forward(dataset.getBatches().at(batch));
-			// nn1.backprop(Y1, dataset.getTargets().at(batch));
+		    nn1.backprop(Y1, dataset.getTargets().at(batch));
             nn2.backprop(Y2, dataset.getTargets().at(batch));
-            // cost1 += bce_cost.cost(Y1, dataset.getTargets().at(batch));
+            cost1 += bce_cost.cost(Y1, dataset.getTargets().at(batch));
             cost2 += bce_cost.cost(Y2, dataset.getTargets().at(batch));
 		}
 
@@ -97,7 +95,7 @@ int main() {
 		}
 	}
 
-	// saveModel(nn1, "nn1.txt");
+	saveModel(nn1, "nn1.txt");
     saveModel(nn2, "nn2.txt");
 	
 	return 0;

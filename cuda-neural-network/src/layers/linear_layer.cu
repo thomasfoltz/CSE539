@@ -146,24 +146,24 @@ void LinearLayer::initializeBiasWithZeros() {
 	b.copyHostToDevice();
 }
 
-Matrix& LinearLayer::forward(Matrix& A) {
+Matrix& LinearLayer::forward(Matrix& A, cudaStream_t stream) {
 	assert(W.shape.x == A.shape.y);
 
 	this->A = A;
 	Shape Z_shape(A.shape.x, W.shape.y);
 	Z.allocateMemoryIfNotAllocated(Z_shape);
 
-	computeAndStoreLayerOutput(A);
+	computeAndStoreLayerOutput(A, stream);
 	NNException::throwIfDeviceErrorsOccurred("Cannot perform linear layer forward propagation.");
 
 	return Z;
 }
 
-void LinearLayer::computeAndStoreLayerOutput(Matrix& A) {
+void LinearLayer::computeAndStoreLayerOutput(Matrix& A, cudaStream_t stream) {
 	dim3 block_size(8, 8);
 	dim3 num_of_blocks(	(Z.shape.x + block_size.x - 1) / block_size.x,
 						(Z.shape.y + block_size.y - 1) / block_size.y);
-	linearLayerForward<<<num_of_blocks, block_size>>>( W.data_device.get(),
+	linearLayerForward<<<num_of_blocks, block_size, 0, stream>>>( W.data_device.get(),
 													   A.data_device.get(),
 													   Z.data_device.get(),
 													   b.data_device.get(),
