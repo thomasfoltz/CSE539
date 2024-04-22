@@ -73,18 +73,18 @@ int main() {
     nn2.addLayer(new SigmoidActivation("sigmoid_output"));
 
     NeuralNetwork nn3;
-    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 45)));
-    nn2.addLayer(new ReLUActivation("relu_1"));
-    nn2.addLayer(new LinearLayer("linear_2", Shape(45, 1)));
-    nn2.addLayer(new ReLUActivation("relu_2"));
-    nn2.addLayer(new SigmoidActivation("sigmoid_output"));
+    nn3.addLayer(new LinearLayer("linear_1", Shape(2, 45)));
+    nn3.addLayer(new ReLUActivation("relu_1"));
+    nn3.addLayer(new LinearLayer("linear_2", Shape(45, 1)));
+    nn3.addLayer(new ReLUActivation("relu_2"));
+    nn3.addLayer(new SigmoidActivation("sigmoid_output"));
 
     NeuralNetwork nn4;
-    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 60)));
-    nn2.addLayer(new ReLUActivation("relu_1"));
-    nn2.addLayer(new LinearLayer("linear_2", Shape(60, 1)));
-    nn2.addLayer(new ReLUActivation("relu_2"));
-    nn2.addLayer(new SigmoidActivation("sigmoid_output"));
+    nn4.addLayer(new LinearLayer("linear_1", Shape(2, 60)));
+    nn4.addLayer(new ReLUActivation("relu_1"));
+    nn4.addLayer(new LinearLayer("linear_2", Shape(60, 1)));
+    nn4.addLayer(new ReLUActivation("relu_2"));
+    nn4.addLayer(new SigmoidActivation("sigmoid_output"));
 
 	// network training
 	Matrix Y;
