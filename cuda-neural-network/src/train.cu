@@ -55,48 +55,55 @@ void saveModel(NeuralNetwork& nn, const char* filePath) {
 int main() {
 	srand(1000);
 
-    CoordinatesDataset dataset(100, 21);
+    CoordinatesDataset dataset(1024, 32);
 
     BCECost bce_cost;
 
 	NeuralNetwork nn1;
-	nn1.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
+	nn1.addLayer(new LinearLayer("linear_1", Shape(2, 15)));
 	nn1.addLayer(new ReLUActivation("relu_1"));
-	nn1.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
+	nn1.addLayer(new LinearLayer("linear_2", Shape(15, 1)));
 	nn1.addLayer(new SigmoidActivation("sigmoid_output"));
 
     NeuralNetwork nn2;
-    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 15)));
+    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 30)));
     nn2.addLayer(new ReLUActivation("relu_1"));
-    nn2.addLayer(new LinearLayer("linear_2", Shape(15, 1)));
+    nn2.addLayer(new LinearLayer("linear_2", Shape(30, 1)));
+    nn2.addLayer(new ReLUActivation("relu_2"));
+    nn2.addLayer(new SigmoidActivation("sigmoid_output"));
+
+    NeuralNetwork nn3;
+    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 45)));
+    nn2.addLayer(new ReLUActivation("relu_1"));
+    nn2.addLayer(new LinearLayer("linear_2", Shape(45, 1)));
+    nn2.addLayer(new ReLUActivation("relu_2"));
+    nn2.addLayer(new SigmoidActivation("sigmoid_output"));
+
+    NeuralNetwork nn4;
+    nn2.addLayer(new LinearLayer("linear_1", Shape(2, 60)));
+    nn2.addLayer(new ReLUActivation("relu_1"));
+    nn2.addLayer(new LinearLayer("linear_2", Shape(60, 1)));
     nn2.addLayer(new ReLUActivation("relu_2"));
     nn2.addLayer(new SigmoidActivation("sigmoid_output"));
 
 	// network training
-	Matrix Y1, Y2;
-	for (int epoch = 0; epoch < 2001; epoch++) {
-		float cost1 = 0.0;
-        float cost2 = 0.0;
+	Matrix Y;
+	for (int epoch = 0; epoch < 5001; epoch++) {
+		float cost = 0.0;
 
 		for (int batch = 0; batch < dataset.getNumOfBatches() - 1; batch++) {
-			Y1 = nn1.forward(dataset.getBatches().at(batch));
-            Y2 = nn2.forward(dataset.getBatches().at(batch));
-		    nn1.backprop(Y1, dataset.getTargets().at(batch));
-            nn2.backprop(Y2, dataset.getTargets().at(batch));
-            cost1 += bce_cost.cost(Y1, dataset.getTargets().at(batch));
-            cost2 += bce_cost.cost(Y2, dataset.getTargets().at(batch));
+			Y = nn1.forward(dataset.getBatches().at(batch));
+		    nn1.backprop(Y, dataset.getTargets().at(batch));
+            cost += bce_cost.cost(Y, dataset.getTargets().at(batch));
 		}
 
 		if (epoch % 100 == 0) {
 			std::cout 	<< "Epoch: " << epoch
-						<< ", Cost: " << cost1 / dataset.getNumOfBatches()
-                        << ", Cost: " << cost2 / dataset.getNumOfBatches()
+						<< ", Cost: " << cost / dataset.getNumOfBatches()
 						<< std::endl;
 		}
 	}
 
 	saveModel(nn1, "nn1.txt");
-    saveModel(nn2, "nn2.txt");
-	
 	return 0;
 }

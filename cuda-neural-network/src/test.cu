@@ -1,3 +1,4 @@
+#include <chrono>
 #include <fstream>
 #include <vector>
 #include <iostream>
@@ -12,6 +13,8 @@
 #include "nn_utils/matrix.hh"
 
 #include "coordinates_dataset.hh"
+
+#define total_coordinates 32768
 
 float computeAccuracy(const Matrix& predictions, const Matrix& targets);
 
@@ -63,37 +66,89 @@ void loadModel(NeuralNetwork& nn, const char* filePath) {
         }
     }
 }
-
-int main() {
-	
-    NeuralNetwork nn1, nn2;
+ 
+int main(int argc, char** argv) {
+    NeuralNetwork nn1, nn2, nn3, nn4;
     loadModel(nn1, "nn1.txt");
     loadModel(nn2, "nn2.txt");
+    loadModel(nn3, "nn3.txt");
+    loadModel(nn4, "nn4.txt");
+
+    int number_of_streams = std::stoi(argv[1]);
+    int batch_size = std::stoi(argv[2]);
+    int number_of_batches = total_coordinates/batch_size;
 
     srand(1000);
-    CoordinatesDataset dataset(1000, 21);
-	Matrix Y1, Y2;
+    CoordinatesDataset dataset(batch_size, number_of_batches);
+    Matrix Y1, Y2, Y3, Y4;
 
-    cudaStream_t stream1, stream2; 
-    cudaStreamCreate (&stream1);
-    cudaStreamCreate (&stream2);
-
-	// compute accuracy
-    for (int i = 0; i < 10; i++) {
-        Y1 = nn1.forward(dataset.getBatches().at(i), stream1);
-        Y2 = nn2.forward(dataset.getBatches().at(i), stream2);
-        Y1.copyDeviceToHost();
-        Y2.copyDeviceToHost();
-
-        float accuracy1 = computeAccuracy(Y1, dataset.getTargets().at(i));
-        float accuracy2 = computeAccuracy(Y2, dataset.getTargets().at(i));
-
-        std::cout 	<< "Accuracy 1: " << accuracy1 << std::endl;
-        std::cout 	<< "Accuracy 2: " << accuracy2 << std::endl;
+    if (number_of_streams == 1) {
+        cudaStream_t stream1; 
+        cudaStreamCreate (&stream1);
+        auto start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < number_of_batches; i++) {
+            Y1 = nn1.forward(dataset.getBatches().at(i), stream1);
+            Y2 = nn2.forward(dataset.getBatches().at(i), stream1);
+            Y3 = nn3.forward(dataset.getBatches().at(i), stream1);
+            Y4 = nn4.forward(dataset.getBatches().at(i), stream1);
+            Y1.copyDeviceToHost();
+            Y2.copyDeviceToHost();
+            Y3.copyDeviceToHost();
+            Y4.copyDeviceToHost();
+        }
+        cudaDeviceSynchronize();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        std::cout << "Total time: " << duration.count() << " milliseconds" << std::endl;
     }
-
-
-	return 0;
+    else if (number_of_streams == 2) {
+        cudaStream_t stream1, stream2;
+        cudaStreamCreate (&stream1);
+        cudaStreamCreate (&stream2);
+        auto start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < number_of_batches; i++) {
+            Y1 = nn1.forward(dataset.getBatches().at(i), stream1);
+            Y2 = nn2.forward(dataset.getBatches().at(i), stream2);
+            Y3 = nn3.forward(dataset.getBatches().at(i), stream1);
+            Y4 = nn4.forward(dataset.getBatches().at(i), stream2);
+            Y1.copyDeviceToHost();
+            Y2.copyDeviceToHost();
+            Y3.copyDeviceToHost();
+            Y4.copyDeviceToHost();
+        }
+        cudaDeviceSynchronize();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        std::cout << "Total time: " << duration.count() << " milliseconds" << std::endl;
+    }
+    else if (number_of_streams == 4) {
+        cudaStream_t stream1, stream2, stream3, stream4;
+        cudaStreamCreate (&stream1);
+        cudaStreamCreate (&stream2);
+        cudaStreamCreate (&stream3);
+        cudaStreamCreate (&stream4);
+        auto start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < number_of_batches; i++) {
+            Y1 = nn1.forward(dataset.getBatches().at(i), stream1);
+            Y2 = nn2.forward(dataset.getBatches().at(i), stream2);
+            Y3 = nn3.forward(dataset.getBatches().at(i), stream3);
+            Y4 = nn4.forward(dataset.getBatches().at(i), stream4);
+            Y1.copyDeviceToHost();
+            Y2.copyDeviceToHost();
+            Y3.copyDeviceToHost();
+            Y4.copyDeviceToHost();
+        }
+        cudaDeviceSynchronize();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        std::cout << "Total time: " << duration.count() << " milliseconds" << std::endl;
+    }
+    else {
+        std::cout << "Invalid number of streams" << std::endl;
+        return 1;
+    }
+    
+    return 0;
 }
 
 float computeAccuracy(const Matrix& predictions, const Matrix& targets) {
