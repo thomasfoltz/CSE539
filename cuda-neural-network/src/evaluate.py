@@ -12,8 +12,7 @@ def calculate_average_duration(data):
       duration = float(duration_str.split()[0])
       sum_duration += duration
 
-    average_duration = sum_duration / len(neural_network_data)
-    average_durations.append(average_duration)
+    average_durations.append(sum_duration)
 
   total_average_duration = sum(average_durations) / len(average_durations)
   return total_average_duration
